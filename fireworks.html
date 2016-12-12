@@ -6,9 +6,84 @@
     <div id="demo-fireworks"></div>
   </body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.js" data-main="js/config"></script>
+  <script src="js/config.js"></script>
   <script>
-    require(['config'], function() {
-      require(['fireworks']);
+    require(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
+            function($, _, THREE, Stats, fw) {
+      var div = $('#demo-fireworks');
+      var scene = new THREE.Scene();
+
+      // camera
+      var camera = new THREE.PerspectiveCamera(
+        45, window.innerWidth / window.innerHeight, 1, 10000 );
+      camera.position.set(0, 0, 250);
+      scene.add(camera);
+
+      // lights
+      var aLight = new THREE.AmbientLight(0x666666);
+      scene.add(aLight);
+
+      // background plane for the trail
+      var bg = new THREE.Mesh(
+        new THREE.PlaneGeometry(window.innerWidth, window.innerHeight),
+        new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 0.2,
+        })
+      );
+      bg.position.z = -10;
+      scene.add(bg);
+
+      // array of fireworks
+      var fireworks = [new fw.Firework()];
+      scene.add(fireworks[0].sceneObject);
+      console.log(fireworks[0]);
+
+      // renderer
+      var renderer = new THREE.WebGLRenderer({
+        preserveDrawingBuffer: true,
+        alpha: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0x000000, 0.2);
+      renderer.autoClearColor = false;
+      div.append(renderer.domElement);
+
+      // event listener
+      window.addEventListener( 'resize', onWindowResize, false );
+
+      // stats
+      var stats = new Stats();
+      stats.domElement.setAttribute("style",
+        ["position: fixed; top: 0px; left: 0px; cursor: pointer;",
+         "opacity: 0.9; z-index: 10000;"].join('\n'));
+      div.append(stats.domElement);
+
+      // begin animation!
+      animate();
+
+      function animate() {
+        _.each(fireworks, function(firework) {
+          firework.animate();
+        });
+        render();
+        stats.update();
+        requestAnimationFrame(animate);
+      }
+
+      function render() {
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        bg.scale.set(window.innerWidth, window.innerHeight, 1);
+      }
     });
   </script>
 </html>

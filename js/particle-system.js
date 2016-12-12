@@ -11,11 +11,11 @@ define(['underscore', 'three'], function(_, THREE) {
    */
   function Particle(mass, pos, vel, color) {
     this.mass = mass || 10;
-    this.pos = pos || new THREE.Vector3(0, 0, 0);
+    this.pos = pos ? pos.clone() : new THREE.Vector3(0, 0, 0);
     this.posOld = this.pos.clone();
-    this.vel = vel || new THREE.Vector3(0, 0, 0);
+    this.vel = vel ? vel.clone() : new THREE.Vector3(0, 0, 0);
     this.velOld = this.vel.clone();
-    this.color = color || new THREE.Vector3(1, 1, 1);
+    this.color = color ? color.clone() : new THREE.Vector3(1, 1, 1);
     // acc will be maintained by the system
     this.acc = new THREE.Vector3(0, 0, 0);
     this.accOld = this.acc.clone();

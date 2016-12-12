@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'three', 'stats', 'ps'],
-       function($, _, THREE, Stats, ps) {
+define(['underscore', 'three', 'ps'],
+       function(_, THREE, ps) {
 
   // timestep in integration
   var TIMESTEP = 1e-1;
@@ -10,20 +10,52 @@ define(['jquery', 'underscore', 'three', 'stats', 'ps'],
   // boost velocity in y
   var Y_VEL = 10;
 
-  var div = $('#demo-fireworks');
-  var scene = new THREE.Scene();
+  /**
+   * @brief Constructor of Firework
+   * @param {THREE.Vector3} Init position.
+   */
+  function Firework(pos, nParticles) {
+    this.pos = pos ? pos.clone() : new THREE.Vector3(0, 0, 0);
+    this.nParticles = nParticles || 100;
 
-  // camera
-  var camera = new THREE.PerspectiveCamera(
-    45, window.innerWidth / window.innerHeight, 1, 10000 );
-  camera.position.set(0, 0, 250);
-  scene.add(camera);
+    // particles
+    this.particles = [];
+    for (i = 0; i < this.nParticles; i++) {
+      var particle = new ps.Particle(this.pos, null,
+        randv3(MIN_VEL, MAX_VEL), null);
+      this.particles.push(particle);
+    }
+    this.particleSystem = new ps.ParticleSystem(this.particles);
 
-  // lights
-  var aLight = new THREE.AmbientLight(0x666666);
-  scene.add(aLight);
+    // geometry
+    this.geometry = new THREE.Geometry();
+    _.each(this.particles, function(p) {
+      this.geometry.vertices.push(p.pos);
+    }, this);
 
-  /*** firework ***/
+    // material
+    var texLoader = new THREE.TextureLoader();
+    var texFirework = texLoader.load("img/particle.png");
+    this.material = new THREE.PointsMaterial({
+      size: 10,
+      map: texFirework,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+    });
+    this.material.color.setHSL(0.2, 0.2, 0.5);
+
+    // scene object
+    this.sceneObject = new THREE.Points(this.geometry, this.material);
+  }
+
+  _.extend(Firework.prototype, {
+    // update the scene object
+    animate: function() {
+      this.particleSystem.integrate(TIMESTEP);
+      this.geometry.verticesNeedUpdate = true;
+    },
+  }, this);
 
   // uniformly sample from a sphere
   // boosting vel on y axis
@@ -37,99 +69,7 @@ define(['jquery', 'underscore', 'three', 'stats', 'ps'],
     return new THREE.Vector3(v1, v2+Y_VEL, v3);
   }
 
-  // particles
-  var nParticles = 100;
-  var particles = [];
-  for (i = 0; i < nParticles; i++) {
-    var particle = new ps.Particle(null, null,
-      randv3(MIN_VEL, MAX_VEL), null);
-    particles.push(particle);
-  }
-  var psFirework = new ps.ParticleSystem(particles);
-
-  // geometry
-  var geoFirework = new THREE.Geometry();
-
-  _.each(particles, function(p) {
-    geoFirework.vertices.push(p.pos);
-  });
-
-  // material
-  var texLoader = new THREE.TextureLoader();
-  var texFirework = texLoader.load("/img/particle.png");
-  var matFirework = new THREE.PointsMaterial({
-    size: 10,
-    map: texFirework,
-    blending: THREE.AdditiveBlending,
-    depthTest: false,
-    transparent: true,
-  });
-  matFirework.color.setHSL(0.2, 0.2, 0.5);
-
-  // firework scene object
-  var firework = new THREE.Points(geoFirework, matFirework);
-  scene.add(firework);
-
-  // renderer
-  var renderer = new THREE.WebGLRenderer({
-    preserveDrawingBuffer: true,
-    alpha: true,
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0x000000, 0.2);
-  renderer.autoClearColor = false;
-  div.append(renderer.domElement);
-
-  // background plane for the trail
-  var bg = new THREE.Mesh(
-    new THREE.PlaneGeometry(window.innerWidth, window.innerHeight),
-    new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.2,
-    })
-  );
-  bg.position.z = -10;
-  scene.add(bg);
-
-  // event listener
-  window.addEventListener( 'resize', onWindowResize, false );
-
-  // stats
-  var stats = new Stats();
-  stats.domElement.setAttribute("style",
-    ["position: fixed; top: 0px; left: 0px; cursor: pointer;",
-     "opacity: 0.9; z-index: 10000;"].join('\n'));
-  div.append(stats.domElement);
-
-  // begin animation
-  animate();
-
-  // animate a frame
-  function animate() {
-    render();
-    stats.update();
-    requestAnimationFrame(animate);
-  }
-
-  // render the scene
-  function render() {
-    // update camera
-    camera.lookAt(scene.position);
-
-    // update scene objects
-    psFirework.integrate(TIMESTEP);
-    geoFirework.verticesNeedUpdate = true;
-
-    // render
-    renderer.render(scene, camera);
-  }
-
-  function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    bg.scale.set(window.innerWidth, window.innerHeight, 1);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
+  return {
+    Firework: Firework,
+  };
 });
