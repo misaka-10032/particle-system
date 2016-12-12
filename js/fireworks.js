@@ -10,6 +10,48 @@ define(['underscore', 'three', 'ps'],
   // boost velocity in y
   var Y_VEL = 10;
 
+  // alpha step for fading effect
+  var ALPHA_STEP = 1e-3;
+
+  // particle attributes
+  var SIZE = 10;
+  var TEXTURE = 'img/particle.png';
+  var COLORS = [
+    new THREE.Color(0.6, 0.6, 0.2),
+  ];
+
+  // vertex shader
+  var VSHADER = [
+    'uniform float size;',
+
+    'void main() {',
+
+    '  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );',
+
+    '  gl_PointSize = size * ( 300.0 / -mvPosition.z );',
+
+    '  gl_Position = projectionMatrix * mvPosition;',
+
+    '}',
+  ].join('\n');
+
+  // fragment shader
+  var FSHADER = [
+    'uniform vec3 color;',
+
+    'uniform sampler2D texture;',
+
+    'void main() {',
+
+    '  gl_FragColor = vec4( color, 1.0 );',
+
+    '  gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );',
+
+    '  if ( gl_FragColor.a < ALPHATEST ) discard;',
+
+    '}',
+  ].join('\n');
+
   /**
    * @brief Constructor of Firework
    * @param {THREE.Vector3} Init position.
@@ -20,7 +62,7 @@ define(['underscore', 'three', 'ps'],
 
     // particles
     this.particles = [];
-    for (i = 0; i < this.nParticles; i++) {
+    for (var i = 0; i < this.nParticles; i++) {
       var particle = new ps.Particle(this.pos, null,
         randv3(MIN_VEL, MAX_VEL), null);
       this.particles.push(particle);
@@ -33,17 +75,34 @@ define(['underscore', 'three', 'ps'],
       this.geometry.vertices.push(p.pos);
     }, this);
 
+    // shader uniforms
+    this.uniforms = {
+      color: {
+        type: 'c',
+        value: COLORS[Math.floor(Math.random()*COLORS.length)],
+      },
+      texture: {
+        type: 'uTex',
+        value: new THREE.TextureLoader().load(TEXTURE),
+      },
+      size: {
+        type: 'uFloat',
+        value: SIZE,
+      },
+      alpha: {
+        type: 'uFloat',
+        value: 1,
+      },
+    };
+
     // material
-    var texLoader = new THREE.TextureLoader();
-    var texFirework = texLoader.load("img/particle.png");
-    this.material = new THREE.PointsMaterial({
-      size: 10,
-      map: texFirework,
-      blending: THREE.AdditiveBlending,
-      depthTest: false,
+    this.material = new THREE.ShaderMaterial({
+      uniforms: this.uniforms,
+      vertexShader: VSHADER,
+      fragmentShader: FSHADER,
       transparent: true,
+      alphaTest: 0.1,
     });
-    this.material.color.setHSL(0.2, 0.2, 0.5);
 
     // scene object
     this.sceneObject = new THREE.Points(this.geometry, this.material);
