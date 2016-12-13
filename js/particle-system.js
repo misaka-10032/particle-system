@@ -7,15 +7,13 @@ define(['underscore', 'three'], function(_, THREE) {
    * @param {Number} Mass of the particle; default as 10.
    * @param {THREE.Vector3} pos Position of the particle; default as origin.
    * @param {THREE.Vector3} vel Velocity; default as (0, 0, 0).
-   * @param {THREE.Vector3} color Color of it; default as white.
    */
-  function Particle(mass, pos, vel, color) {
+  function Particle(mass, pos, vel) {
     this.mass = mass || 10;
     this.pos = pos ? pos.clone() : new THREE.Vector3(0, 0, 0);
     this.posOld = this.pos.clone();
     this.vel = vel ? vel.clone() : new THREE.Vector3(0, 0, 0);
     this.velOld = this.vel.clone();
-    this.color = color ? color.clone() : new THREE.Vector3(1, 1, 1);
     // acc will be maintained by the system
     this.acc = new THREE.Vector3(0, 0, 0);
     this.accOld = this.acc.clone();

@@ -51,7 +51,8 @@
       div.append(renderer.domElement);
 
       // event listener
-      window.addEventListener( 'resize', onWindowResize, false );
+      window.addEventListener('resize', onWindowResize, false);
+      window.addEventListener('click', onClick, false);
 
       // stats
       var stats = new Stats();
@@ -64,9 +65,23 @@
       animate();
 
       function animate() {
+        if (!fireworks.length)
+          onClick({
+            clientX: Math.random() * window.innerWidth,
+            clientY: Math.random() * window.innerHeight,
+          });
+
+        // only keep those animated
+        var animatedFireworks = [];
         _.each(fireworks, function(firework) {
-          firework.animate();
+          var animated = firework.animate();
+          if (animated)
+            animatedFireworks.push(firework);
+          else
+            scene.remove(firework.sceneObject);
         });
+        fireworks = animatedFireworks;
+
         render();
         stats.update();
         requestAnimationFrame(animate);
@@ -82,6 +97,24 @@
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         bg.scale.set(window.innerWidth, window.innerHeight, 1);
+      }
+
+      function onClick(e) {
+        var pos = new THREE.Vector3(
+            e.clientX / window.innerWidth * 2 - 1,
+            -e.clientY / window.innerHeight * 2 + 1,
+            0.5);
+        pos.unproject(camera);
+        pos.sub(camera.position).normalize();
+        var dist = -camera.position.z / pos.z;
+        pos = camera.position.clone().add(pos.multiplyScalar(dist));
+        var firework = new fw.Firework(pos);
+        fireworks.push(firework);
+        scene.add(firework.sceneObject);
+        console.log('mouse:', e.clientX, e.clientY);
+        console.log('world:', pos);
+        console.log('#fireworks:', fireworks.length);
+        console.log('#sceneObjects:', scene.children.length);
       }
     });
   </script>
