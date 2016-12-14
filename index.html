@@ -72,14 +72,18 @@
   <script>
     require(["jquery"], function($) {
 
-      $("#main_content").load("final.html");
+      function main_loaded() {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }
+
+      $("#main_content").load("final.html", main_loaded);
 
       $("#proposal_btn").click(function() {
-        $("#main_content").load("proposal.html");
+        $("#main_content").load("proposal.html", main_loaded);
       });
 
       $("#final_btn").click(function() {
-        $("#main_content").load("final.html");
+        $("#main_content").load("final.html", main_loaded);
       });
 
     });
