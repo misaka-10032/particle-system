@@ -210,6 +210,19 @@ define(['underscore', 'three', 'ps'],
 
       return true;
     },
+
+    // reset the cloth
+    reset: function() {
+      for (yi = 0; yi <= this.ny; yi++) {
+        for (xi = 0; xi <= this.nx; xi++) {
+          var idx = this.particleIdx(xi, yi);
+          var p = this.particles[idx];
+          p.pos.copy(this.funCloth(xi/this.nx, yi/this.ny));
+          p.vel.set(0, 0, 0);
+          p.acc.set(0, 0, 0);
+        }
+      }
+    }
   }, this);
 
   return {

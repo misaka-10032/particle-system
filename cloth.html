@@ -3,7 +3,11 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
-    <div id="demo-cloth"></div>
+    <div id="demo-cloth">
+      <a id="replay" style="position:fixed; top:0px; right:0px; cursor:pointer; padding:20px;">
+        Replay
+      </a>
+    </div>
   </body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.js" data-main="js/config"></script>
   <script src="js/config.js"></script>
@@ -43,6 +47,7 @@
       // event listener
       window.addEventListener('resize', onWindowResize, false);
       window.addEventListener('click', onClick, false);
+      $("#replay").click(onClickReplay);
 
       // stats
       var stats = new Stats();
@@ -91,6 +96,10 @@
         console.log('world:', pos);
         console.log('#sceneObjects:', scene.children.length);
         // TODO: blow a wind
+      }
+
+      function onClickReplay() {
+        cloth.reset();
       }
     });
   </script>
