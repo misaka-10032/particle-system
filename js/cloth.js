@@ -195,7 +195,7 @@ define(['underscore', 'three', 'ps'],
 
       // apply wind force
       var time = Date.now();
-      var windStrength = Math.cos(time/7000) * 20 + 40;
+      var windStrength = Math.cos(time/1000) * 20 + 40;
       var windForce = this.windDir.normalize().multiplyScalar(windStrength);
       // reset external forces
       _.each(this.particles, function(p) {

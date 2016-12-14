@@ -48,6 +48,7 @@
       window.addEventListener('resize', onWindowResize, false);
       window.addEventListener('mousedown', onMouseDown, false);
       window.addEventListener('mouseup', onMouseUp, false);
+      window.addEventListener('mousemove', onMouseMove, false);
       $("#replay").click(onClickReplay);
 
       // stats
@@ -62,6 +63,13 @@
       ctr.maxPolarAngle = Math.PI * 0.5;
       ctr.minDistance = 1000;
       ctr.maxDistance = 7500;
+
+      // arrow helper indicating wind dir
+      var arrow = new THREE.ArrowHelper(
+          new THREE.Vector3(1, 0, 0),
+          new THREE.Vector3(0, 0, 0),
+          0, 0x0000ff);
+      scene.add(arrow);
 
       // begin animation!
       animate();
@@ -84,15 +92,30 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
-      function onMouseDown(e) {
+      function screenToWorld(x, y) {
         var pos = new THREE.Vector3(
-            e.clientX / window.innerWidth * 2 - 1,
-            -e.clientY / window.innerHeight * 2 + 1,
+             x / window.innerWidth * 2 - 1,
+            -y / window.innerHeight * 2 + 1,
             0.5);
         pos.unproject(camera);
         pos.sub(camera.position).normalize();
         var dist = -camera.position.z / pos.z;
         pos = camera.position.clone().add(pos.multiplyScalar(dist));
+        return pos;
+      }
+
+      function onMouseMove(e) {
+        var pos = screenToWorld(e.clientX, e.clientY);
+        console.log('mouse move');
+        console.log('mouse:', e.clientX, e.clientY);
+        console.log('world:', pos);
+        arrow.position.copy(pos);
+        arrow.setDirection(pos.clone().negate().normalize());
+        arrow.setLength(100);
+      }
+
+      function onMouseDown(e) {
+        var pos = screenToWorld(e.clientX, e.clientY);
         console.log('mouse down');
         console.log('mouse:', e.clientX, e.clientY);
         console.log('world:', pos);
