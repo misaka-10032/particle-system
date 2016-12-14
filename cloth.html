@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  </head>
+  <body>
+    <div id="demo-cloth"></div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.js" data-main="js/config"></script>
+  <script src="js/config.js"></script>
+  <script>
+    require(['jquery', 'underscore', 'three', 'orbit', 'stats', 'cloth'],
+            function($, _, three, orbit, Stats, CLOTH) {
+      var div = $('#demo-cloth');
+      var scene = new THREE.Scene();
+
+      // camera
+      var camera = new THREE.PerspectiveCamera(
+        30, window.innerWidth / window.innerHeight, 1, 10000 );
+      camera.position.set(1000, 50, 1500);
+      scene.add(camera);
+
+      // lights
+      var aLight = new THREE.AmbientLight(0x666666);
+      scene.add(aLight);
+
+      // array of fireworks
+      var cloth = new CLOTH.Cloth();
+      _.each(cloth.sceneObjects, function(obj) {
+        scene.add(obj);
+      });
+
+      // renderer
+      var renderer = new THREE.WebGLRenderer({
+        preserveDrawingBuffer: false,
+        alpha: false,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0xeeeeee);
+      renderer.autoClearColor = true;
+      div.append(renderer.domElement);
+
+      // event listener
+      window.addEventListener('resize', onWindowResize, false);
+      window.addEventListener('click', onClick, false);
+
+      // stats
+      var stats = new Stats();
+      stats.domElement.setAttribute("style",
+        ["position: fixed; top: 0px; left: 0px; cursor: pointer;",
+         "opacity: 0.9; z-index: 10000;"].join('\n'));
+      div.append(stats.domElement);
+
+      // orbit control
+      var ctr = new THREE.OrbitControls(camera, renderer.domElement);
+      ctr.maxPolarAngle = Math.PI * 0.5;
+      ctr.minDistance = 1000;
+      ctr.maxDistance = 7500;
+
+      // begin animation!
+      animate();
+
+      function animate() {
+        cloth.animate();
+        render();
+        stats.update();
+        requestAnimationFrame(animate);
+      }
+
+      function render() {
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function onClick(e) {
+        var pos = new THREE.Vector3(
+            e.clientX / window.innerWidth * 2 - 1,
+            -e.clientY / window.innerHeight * 2 + 1,
+            0.5);
+        pos.unproject(camera);
+        pos.sub(camera.position).normalize();
+        var dist = -camera.position.z / pos.z;
+        pos = camera.position.clone().add(pos.multiplyScalar(dist));
+        console.log('mouse:', e.clientX, e.clientY);
+        console.log('world:', pos);
+        console.log('#sceneObjects:', scene.children.length);
+        // TODO: blow a wind
+      }
+    });
+  </script>
+</html>

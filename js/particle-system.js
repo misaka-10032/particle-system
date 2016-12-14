@@ -7,6 +7,8 @@ define(['underscore', 'three'], function(_, THREE) {
    * @param {Number} Mass of the particle; default as 10.
    * @param {THREE.Vector3} pos Position of the particle; default as origin.
    * @param {THREE.Vector3} vel Velocity; default as (0, 0, 0).
+   *
+   * Vectors will be copied into the object.
    */
   function Particle(mass, pos, vel) {
     this.mass = mass || 10;
@@ -20,12 +22,12 @@ define(['underscore', 'three'], function(_, THREE) {
   }
 
   _.extend(Particle.prototype, {
-    // integrate the particle over a timestep with Symplectic Euler.
+    // integrate the particle over a timestep with Forward Euler.
     integrate: function(dt) {
       this.velOld.copy(this.vel);
       this.posOld.copy(this.pos);
       // update vel via accOld
-      this.vel.addScaledVector(this.accOld, dt);
+      this.vel.addScaledVector(this.acc, dt);
       // update pos via vel
       this.pos.addScaledVector(this.vel, dt);
     },
@@ -35,14 +37,16 @@ define(['underscore', 'three'], function(_, THREE) {
    * @brief Constructor of BiGroup, describing binary constraints.
    * @param {Particle} p1 Particle 1.
    * @param {particle} p2 Particle 2.
+   * @param {Number} r Rest length.
    * @param {Number} ks Spring constant; has default.
    * @param {Number} kd Damping constant; has default.
    */
-  function BiGroup(p1, p2, ks, kd) {
+  function BiGroup(p1, p2, r, ks, kd) {
     this.p1 = p1;
     this.p2 = p2;
-    this.ks = ks || 5;
-    this.kd = kd || 1e-2;
+    this.r  = r ;
+    this.ks = ks || 100;
+    this.kd = kd || 10;
   }
 
   /**
@@ -58,28 +62,43 @@ define(['underscore', 'three'], function(_, THREE) {
   }
 
   _.extend(ParticleSystem.prototype, {
-    // integrate the system over a timestep via Symplectic Euler.
+
+    // integrate the system over a timestep via Forward Euler.
     integrate: function(dt) {
 
-      // integrate all the particles first
-      _.each(this.particles, function(p) {
-        p.integrate(dt);
-      }, this);
-
-      // apply forces later
       // reset acc as gravity
       _.each(this.particles, function(p) {
         p.accOld.copy(p.acc);
         p.acc.copy(this.gravity);
       }, this);
+
       // TODO: apply unary forces
-      // TODO: apply binary forces
+
+      // apply binary forces
+      _.each(this.biGroups, function(biGroup) {
+        var p1 = biGroup.p1;
+        var p2 = biGroup.p2;
+        var lp = new THREE.Vector3().subVectors(p1.pos, p2.pos);
+        var lv = new THREE.Vector3().subVectors(p1.vel, p2.vel);
+        var f1 = biGroup.ks * (lp.length() - biGroup.r);
+        var f2 = biGroup.kd * lp.dot(lv) / lp.length();
+        var fb = lp.clone().normalize().multiplyScalar(f1+f2);
+        var fa = fb.clone().multiplyScalar(-1);
+        p1.acc.addScaledVector(fa, 1/p1.mass);
+        p2.acc.addScaledVector(fb, 1/p2.mass);
+      }, this);
+
+      // integrate all the particles
+      _.each(this.particles, function(p) {
+        p.integrate(dt);
+      }, this);
     },
   });
 
   // export functions
   return {
     Particle: Particle,
+    BiGroup: BiGroup,
     ParticleSystem: ParticleSystem,
   };
 });

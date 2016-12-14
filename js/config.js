@@ -6,10 +6,12 @@ requirejs.config({
     stats: "https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min",
     bootstrap: "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min",
     three: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min",
+    orbit: "OrbitControls",
     ps: "particle-system",
   },
   shim: {
     three: { exports: "THREE" },
     stats: { exports: "Stats" },
+    orbit: { deps: ["three"], exports: "THREE.OrbitControls" },
   },
 });
