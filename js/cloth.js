@@ -9,28 +9,20 @@ define(['underscore', 'three', 'ps'],
   //var TEXTURE = 'img/cloth2.png';
   //var TEXTURE = 'img/cloth3.png';
 
-  // vertex shader
-  var VSHADER = [
-    // TODO
-  ].join('\n');
-
-  // fragment shader
-  var FSHADER = [
-    // TODO
-  ].join('\n');
-
   /**
    * @brief Constructor of Cloth
    * @param {Number} w Width of cloth.
    * @param {Number} h Height of cloth.
    * @param {Number} nx Number of segments in x axis.
    * @param {Number} ny Number of segments in y axis.
+   * @param {String} texUrl Texture url.
    */
-  function Cloth(w, h, nx, ny) {
+  function Cloth(w, h, nx, ny, texUrl) {
     this.w = w || 250;
     this.h = h || 250;
     this.nx = nx || 10;
     this.ny = ny || 10;
+    this.texUrl = texUrl || TEXTURE;
     this.segX = this.w / this.nx;
     this.segY = this.h / this.ny;
     this.pos = new THREE.Vector3(0, 0, 0);

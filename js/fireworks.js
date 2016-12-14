@@ -62,10 +62,12 @@ define(['underscore', 'three', 'ps'],
 
   /**
    * @brief Constructor of Firework
-   * @param {THREE.Vector3} Init position.
+   * @param {THREE.Vector3} pos Init position.
+   * @param {String} texUrl Texture url of a single particle.
    */
-  function Firework(pos) {
+  function Firework(pos, texUrl) {
     this.pos = pos ? pos.clone() : new THREE.Vector3(0, 0, 0);
+    this.texUrl = texUrl || TEXTURE;
     this.nParticles = Math.floor( Math.random() * (N_MAX-N_MIN) + N_MIN );
 
     // particles
@@ -91,7 +93,7 @@ define(['underscore', 'three', 'ps'],
       },
       texture: {
         type: 'uTex',
-        value: new THREE.TextureLoader().load(TEXTURE),
+        value: new THREE.TextureLoader().load(this.texUrl),
       },
       size: {
         type: 'uFloat',
