@@ -6,16 +6,7 @@
 
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
-    <script type="text/javascript" async
-            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
-    </script>
-    <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      tex2jax: {inlineMath: [['$','$']], displayMath: [['$$', '$$']]}
-    });
-    </script>
+    <!--<link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">-->
 
     <title>Particle System  by misaka-10032</title>
   </head>
@@ -28,6 +19,8 @@
         <h2>graphics asst5</h2>
 
         <section id="downloads">
+          <a href="javascript:void(0)" id="proposal_btn" class="btn">Proposal</a>
+          <a href="javascript:void(0)" id="final_btn" class="btn">Final</a>
           <a href="https://github.com/misaka-10032/particle-system/zipball/master" class="btn">Download as .zip</a>
           <a href="https://github.com/misaka-10032/particle-system/tarball/master" class="btn">Download as .tar.gz</a>
           <a href="https://github.com/misaka-10032/particle-system" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
@@ -37,42 +30,58 @@
 
     <div class="container">
       <section id="main_content">
-        <h1>
-<a id="proposal" class="anchor" href="#proposal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Proposal</h1>
-
-<p>Author: Longqi Cai &lt;<a href="mailto:longqic@andrew.cmu.edu">longqic@andrew.cmu.edu</a>&gt;</p>
-
-<h2>
-<a id="description" class="anchor" href="#description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Description</h2>
-
-<p>A particle system simulates physical interactions between particles in the system. Each particle has the following basic attributes: mass $m$, position $x$, velocity $v$, and force $f$. One of the fundamental constraints is the phase space equation:</p>
-
-<p>$$
-[x, v]' = [v, f/m]
-$$</p>
-
-<p>Several types of forces can be modeled in the system:</p>
-
-<ul>
-<li>Unary force: force that acts on each particle independently, e.g. gravity, wind, drag, etc.</li>
-<li>n-ary force: force that involves multiple particles in the system, e.g. springs.</li>
-<li>Spatial interaction: e.g. attraction or repulsion that acts on all pairs of particles.</li>
-</ul>
-
-<p>A particle system can model many interesting scenes, such as burning fire, fireworks, hair, cloth, fluid, etc.</p>
-
-<h2>
-<a id="plan" class="anchor" href="#plan" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plan</h2>
-
-<ul>
-<li>I would like to implement the system in javascript, and render it on HTML5 canvas.</li>
-<li>I would start with some warm-up tasks like fire, fireworks, which models unary forces only. In the meanwhile, I will familiarize myself with WebGL interfaces.</li>
-<li>Then I would proceeds to model more complicated systems, such as hair and cloth, which also involves binary forces between particles.</li>
-<li>If time permits, I would try more advanced models, such as fluid and smoke.</li>
-</ul>
+        <!-- TO BE FILLED -->
       </section>
     </div>
 
-    
   </body>
+
+  <script type="text/javascript" async
+          src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {inlineMath: [['$','$']], displayMath: [['$$', '$$']]}
+  });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.js"></script>
+  <script>
+    requirejs.config({
+      paths: {
+        jquery: "https://code.jquery.com/jquery-3.1.1.min",
+        underscore: "https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min",
+        stats: "https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min",
+        bootstrap: "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min",
+        three: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min",
+        orbit: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/OrbitControls.js",
+        ps: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/particle-system.js",
+        fireworks: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/fireworks.js",
+        fireworksDemo: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/fireworks-demo.js",
+        cloth: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/cloth.js",
+        clothDemo: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/js/cloth-demo.js",
+      },
+      shim: {
+        three: { exports: "THREE" },
+        stats: { exports: "Stats" },
+        orbit: { deps: ["three"], exports: "THREE.OrbitControls" },
+      }
+    });
+  </script>
+
+  <script>
+    require(["jquery"], function($) {
+
+      $("#main_content").load("final.html");
+
+      $("#proposal_btn").click(function() {
+        $("#main_content").load("proposal.html");
+      });
+
+      $("#final_btn").click(function() {
+        $("#main_content").load("final.html");
+      });
+
+    });
+  </script>
 </html>

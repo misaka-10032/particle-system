@@ -1,0 +1,33 @@
+<h1>
+<a id="final" class="anchor" href="#final" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Final</h1>
+
+<p>Author: Longqi Cai &lt;<a href="mailto:longqic@andrew.cmu.edu">longqic@andrew.cmu.edu</a>&gt;</p>
+
+<h2>
+<a id="description" class="anchor" href="#description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Description</h2>
+
+<p>A particle system simulates physical interactions between particles in the system. Each particle has the following basic attributes: mass $m$, position $x$, velocity $v$, and force $f$. One of the fundamental constraints is the phase space equation:</p>
+
+<p>$$
+[x, v]' = [v, f/m]
+$$</p>
+
+<p>Several types of forces can be modeled in the system:</p>
+
+<ul>
+<li>Unary force: force that acts on each particle independently, e.g. gravity, wind, drag, etc.</li>
+<li>n-ary force: force that involves multiple particles in the system, e.g. springs.</li>
+<li>Spatial interaction: e.g. attraction or repulsion that acts on all pairs of particles.</li>
+</ul>
+
+<p>A particle system can model many interesting scenes, such as burning fire, fireworks, hair, cloth, fluid, etc.</p>
+
+<h2>
+<a id="plan" class="anchor" href="#plan" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plan</h2>
+
+<ul>
+<li>I would like to implement the system in javascript, and render it on HTML5 canvas.</li>
+<li>I would start with some warm-up tasks like fire, fireworks, which models unary forces only. In the meanwhile, I will familiarize myself with WebGL interfaces.</li>
+<li>Then I would proceeds to model more complicated systems, such as hair and cloth, which also involves binary forces between particles.</li>
+<li>If time permits, I would try more advanced models, such as fluid and smoke.</li>
+</ul>
