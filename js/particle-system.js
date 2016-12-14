@@ -19,6 +19,8 @@ define(['underscore', 'three'], function(_, THREE) {
     // acc will be maintained by the system
     this.acc = new THREE.Vector3(0, 0, 0);
     this.accOld = this.acc.clone();
+    // external force
+    this.extForce = new THREE.Vector3(0, 0, 0);
   }
 
   _.extend(Particle.prototype, {
@@ -69,16 +71,22 @@ define(['underscore', 'three'], function(_, THREE) {
     // integrate the system over a timestep via Forward Euler.
     integrate: function(dt) {
 
-      // reset acc as gravity
+      // apply unary forces
       _.each(this.particles, function(p) {
-        p.accOld.copy(p.acc);
-        p.acc.copy(this.gravity);
-      }, this);
 
-      // apply viscous drags
-      _.each(this.particles, function(p) {
-        var f = new THREE.Vector3().addScaledVector(p.vel, -this.kd);
-        p.acc.addScaledVector(f, 1/p.mass);
+        // keep track of history
+        p.accOld.copy(p.acc);
+
+        // reset acc as gravity
+        p.acc.copy(this.gravity);
+
+        // apply external force
+        p.acc.addScaledVector(p.extForce, 1/p.mass);
+
+        // apply viscous drags
+        var vf = new THREE.Vector3().addScaledVector(p.vel, -this.kd);
+        p.acc.addScaledVector(vf, 1/p.mass);
+
       }, this);
 
       // apply binary forces

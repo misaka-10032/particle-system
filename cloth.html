@@ -46,7 +46,8 @@
 
       // event listener
       window.addEventListener('resize', onWindowResize, false);
-      window.addEventListener('click', onClick, false);
+      window.addEventListener('mousedown', onMouseDown, false);
+      window.addEventListener('mouseup', onMouseUp, false);
       $("#replay").click(onClickReplay);
 
       // stats
@@ -83,7 +84,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
-      function onClick(e) {
+      function onMouseDown(e) {
         var pos = new THREE.Vector3(
             e.clientX / window.innerWidth * 2 - 1,
             -e.clientY / window.innerHeight * 2 + 1,
@@ -92,10 +93,19 @@
         pos.sub(camera.position).normalize();
         var dist = -camera.position.z / pos.z;
         pos = camera.position.clone().add(pos.multiplyScalar(dist));
+        console.log('mouse down');
         console.log('mouse:', e.clientX, e.clientY);
         console.log('world:', pos);
-        console.log('#sceneObjects:', scene.children.length);
-        // TODO: blow a wind
+        // blow a wind
+        cloth.windDir.copy(pos).negate().normalize();
+        console.log('wind dir:', cloth.windDir);
+      }
+
+      function onMouseUp(e) {
+        console.log('mouse up');
+        // stop wind
+        cloth.windDir.set(0, 0, 0);
+        console.log('wind dir:', cloth.windDir);
       }
 
       function onClickReplay() {

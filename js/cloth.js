@@ -35,6 +35,7 @@ define(['underscore', 'three', 'ps'],
     this.segY = this.h / this.ny;
     this.pos = new THREE.Vector3(0, 0, 0);
     this.sceneObjects = [];
+    this.windDir = new THREE.Vector3(0, 0, 0);
 
     /**** cloth ****/
 
@@ -192,6 +193,25 @@ define(['underscore', 'three', 'ps'],
     // update the scene object
     animate: function() {
 
+      // apply wind force
+      var time = Date.now();
+      var windStrength = Math.cos(time/7000) * 20 + 40;
+      var windForce = this.windDir.normalize().multiplyScalar(windStrength);
+      // reset external forces
+      _.each(this.particles, function(p) {
+        p.extForce.set(0, 0, 0);
+      }, this);
+      // apply wind force in normal direction
+      _.each(this.geoCloth.faces, function(face) {
+        var normal = face.normal;
+        // projected force
+        var fp = normal.clone().normalize()
+          .multiplyScalar(normal.dot(windForce));
+        this.particles[face.a].extForce.add(fp);
+        this.particles[face.b].extForce.add(fp);
+        this.particles[face.c].extForce.add(fp);
+      }, this);
+
       // integrate
       this.particleSystem.integrate(TIMESTEP);
 
@@ -206,7 +226,10 @@ define(['underscore', 'three', 'ps'],
       for (i = 0; i < this.particles.length; i++) {
         this.geoCloth.vertices[i].copy(this.particles[i].pos);
       }
+      this.geoCloth.computeFaceNormals();
+      this.geoCloth.computeVertexNormals();
       this.geoCloth.verticesNeedUpdate = true;
+      this.geoCloth.normalsNeedUpdate = true;
 
       return true;
     },
