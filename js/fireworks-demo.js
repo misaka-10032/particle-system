@@ -2,12 +2,20 @@ define(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
        function($, _, THREE, Stats, fw) {
   return {
     init: function(config) {
-      var div = $("#".concat(config.divId));
+
+      var divParent = $("#".concat(config.divId));
+      var div = $("<div>", {style: "position:relative;"});
+      divParent.append(div);
+
+      var canvasWidth = div.width();
+      var canvasAspect = 4/3;
+      var canvasHeight = canvasWidth / canvasAspect;
+
       var scene = new THREE.Scene();
 
       // camera
       var camera = new THREE.PerspectiveCamera(
-        45, window.innerWidth / window.innerHeight, 1, 10000 );
+        45, canvasAspect, 1, 10000 );
       camera.position.set(0, 0, 250);
       scene.add(camera);
 
@@ -17,7 +25,7 @@ define(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
 
       // background plane for the trail
       var bg = new THREE.Mesh(
-        new THREE.PlaneGeometry(window.innerWidth, window.innerHeight),
+        new THREE.PlaneGeometry(canvasWidth, canvasHeight),
         new THREE.MeshBasicMaterial({
           color: 0x000000,
           transparent: true,
@@ -36,20 +44,16 @@ define(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
         preserveDrawingBuffer: true,
         alpha: true,
       });
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(canvasWidth, canvasHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setClearColor(0x000000, 0.2);
       renderer.autoClearColor = false;
       div.append(renderer.domElement);
 
-      // event listener
-      window.addEventListener('resize', onWindowResize, false);
-      window.addEventListener('click', onClick, false);
-
       // stats
       var stats = new Stats();
       stats.domElement.setAttribute("style",
-        ["position: fixed; top: 0px; left: 0px; cursor: pointer;",
+        ["position: absolute; top: 0px; left: 0px; cursor: pointer;",
          "opacity: 0.9; z-index: 10000;"].join('\n'));
       div.append(stats.domElement);
 
@@ -57,11 +61,10 @@ define(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
       animate();
 
       function animate() {
-        if (!fireworks.length)
-          onClick({
-            clientX: Math.random() * window.innerWidth,
-            clientY: Math.random() * window.innerHeight,
-          });
+        if (!fireworks.length) {
+          explodeAt(Math.random() * canvasWidth,
+                    Math.random() * canvasHeight);
+        }
 
         // only keep those animated
         var animatedFireworks = [];
@@ -84,30 +87,42 @@ define(['jquery', 'underscore', 'three', 'stats', 'fireworks'],
         renderer.render(scene, camera);
       }
 
-      function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        bg.scale.set(window.innerWidth, window.innerHeight, 1);
-      }
+      // onWindowResize
+      $(window).resize(function() {
+        canvasWidth = div.width();
+        canvasHeight = canvasWidth / canvasAspect;
+        renderer.setSize(canvasWidth, canvasHeight);
+        bg.scale.set(canvasWidth, canvasHeight, 1);
+      });
 
-      function onClick(e) {
+      function screenToWorld(x, y) {
         var pos = new THREE.Vector3(
-            e.clientX / window.innerWidth * 2 - 1,
-            -e.clientY / window.innerHeight * 2 + 1,
+             x / canvasWidth * 2 - 1,
+            -y / canvasHeight * 2 + 1,
             0.5);
         pos.unproject(camera);
         pos.sub(camera.position).normalize();
         var dist = -camera.position.z / pos.z;
         pos = camera.position.clone().add(pos.multiplyScalar(dist));
+        return pos;
+      }
+
+      function explodeAt(x, y) {
+        var pos = screenToWorld(x, y);
         var firework = new fw.Firework(pos, config.texUrl);
         fireworks.push(firework);
         scene.add(firework.sceneObject);
-        console.log('mouse:', e.clientX, e.clientY);
-        console.log('world:', pos);
-        console.log('#fireworks:', fireworks.length);
-        console.log('#sceneObjects:', scene.children.length);
       }
+
+      // onDivClick
+      div.click(function(e) {
+        var x = e.pageX - $(this).offset().left;
+        var y = e.pageY - $(this).offset().top;
+        console.log('mouse click');
+        console.log('mouse:', x, y);
+        console.log('world:', screenToWorld(x, y));
+        explodeAt(x, y);
+      });
     },
   };
 });

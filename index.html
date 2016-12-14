@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+      body {
+        padding: 20px;
+      }
+      .demo {
+        padding: 10px 80px 10px 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1> Fireworks Demo </h1>
+    <p> Click on the canvas to explode a firework. </p>
+    <div id="fireworks-demo" class="demo"></div>
+    <h1> Cloth Demo </h1>
+    <p> Hold left mouse button to blow a random wind. Click on Replay to reset the scene.</p>
+    <div id="cloth-demo" class="demo"></div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.js" data-main="js/config"></script>
+  <script>
+    require(['fireworks-demo'], function(demo) {
+      demo.init({
+        divId: "fireworks-demo",
+        texUrl: "img/particle.png",
+      });
+    })
+    require(['cloth-demo'], function(demo) {
+      demo.init({
+        divId: "cloth-demo",
+        texUrl: "img/cloth1.jpg",
+      });
+    })
+  </script>
+</html>
