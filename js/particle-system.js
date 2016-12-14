@@ -24,6 +24,7 @@ define(['underscore', 'three'], function(_, THREE) {
   _.extend(Particle.prototype, {
     // integrate the particle over a timestep with Forward Euler.
     integrate: function(dt) {
+      // keep track of old stuff
       this.velOld.copy(this.vel);
       this.posOld.copy(this.pos);
       // update vel via accOld
@@ -53,11 +54,13 @@ define(['underscore', 'three'], function(_, THREE) {
    * @brief Constructor of ParticleSystem.
    * @param {Array<Particle>} particles Array of particles.
    * @param {THREE.Vector3} gravity Constant force field.
+   * @param {Number} kd Viscous drag coefficient.
    * @param {Array<BiGroup>} biGroups Binary constraints.
    */
-  function ParticleSystem(particles, gravity, biGroups) {
+  function ParticleSystem(particles, gravity, kd, biGroups) {
     this.particles = particles || [];
     this.gravity = gravity || new THREE.Vector3(0, -6.674, 0);
+    this.kd = kd || 0.5;
     this.biGroups = biGroups || [];
   }
 
@@ -72,7 +75,11 @@ define(['underscore', 'three'], function(_, THREE) {
         p.acc.copy(this.gravity);
       }, this);
 
-      // TODO: apply unary forces
+      // apply viscous drags
+      _.each(this.particles, function(p) {
+        var f = new THREE.Vector3().addScaledVector(p.vel, -this.kd);
+        p.acc.addScaledVector(f, 1/p.mass);
+      }, this);
 
       // apply binary forces
       _.each(this.biGroups, function(biGroup) {

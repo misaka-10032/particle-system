@@ -184,7 +184,8 @@ define(['underscore', 'three', 'ps'],
       this.biGroups.push(biGroup);
     }
 
-    this.particleSystem = new ps.ParticleSystem(this.particles, null, this.biGroups);
+    this.particleSystem = new ps.ParticleSystem(
+      this.particles, null, null, this.biGroups);
   }
 
   _.extend(Cloth.prototype, {
