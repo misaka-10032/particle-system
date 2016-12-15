@@ -1,12 +1,12 @@
 <h1>
-<a id="final" class="anchor" href="#final" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Final</h1>
+<a id="sec_final" class="anchor" href="#sec_final" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Final</h1>
 
 <p>Author: Longqi Cai &lt;<a href="mailto:longqic@andrew.cmu.edu">longqic@andrew.cmu.edu</a>&gt;</p>
 
 <h2>
-<a id="description" class="anchor" href="#description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Description</h2>
+<a id="sec_introduction" class="anchor" href="#sec_introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h2>
 
-<p>A particle system simulates physical interactions between particles in the system. Each particle has the following basic attributes: mass $m$, position $x$, velocity $v$, and force $f$. One of the fundamental constraints is the phase space equation:</p>
+<p>A particle system simulates physical interactions between particles in the system. Each particle has the following basic attributes: mass $m$, position $x$, velocity $v$, and force $f$. The fundamental constraint that the system must hold is the phase space equation:</p>
 
 <p>$$
 [x, v]' = [v, f/m]
@@ -15,19 +15,142 @@ $$</p>
 <p>Several types of forces can be modeled in the system:</p>
 
 <ul>
-<li>Unary force: force that acts on each particle independently, e.g. gravity, wind, drag, etc.</li>
-<li>n-ary force: force that involves multiple particles in the system, e.g. springs.</li>
-<li>Spatial interaction: e.g. attraction or repulsion that acts on all pairs of particles.</li>
+<li>Unary force: force that acts on each particle independently, e.g. gravity, wind, viscous drag, etc.</li>
+<li>N-ary force: force that involves multiple particles in the system, e.g. springs.</li>
+<li>Spatial interaction: force that depends on spatial locations of all pairs of particles, e.g. attraction and repulsion.</li>
 </ul>
 
-<p>A particle system can model many interesting scenes, such as burning fire, fireworks, hair, cloth, fluid, etc.</p>
+<p>The particle system drives the simulation of many interesting scenes, such as a burning fire, fireworks, hair, cloth, fluid, etc.</p>
 
 <h2>
-<a id="plan" class="anchor" href="#plan" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plan</h2>
+<a id="sec_description" class="anchor" href="#sec_description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Description</h2>
+
+<p>This project defines a particle system that supports unary and binary constraints, and simulates the fireworks and cloth as examples. The forces modeled in this project include</p>
 
 <ul>
-<li>I would like to implement the system in javascript, and render it on HTML5 canvas.</li>
-<li>I would start with some warm-up tasks like fire, fireworks, which models unary forces only. In the meanwhile, I will familiarize myself with WebGL interfaces.</li>
-<li>Then I would proceeds to model more complicated systems, such as hair and cloth, which also involves binary forces between particles.</li>
-<li>If time permits, I would try more advanced models, such as fluid and smoke.</li>
+<li>gravity: unary force that points towards the ground.</li>
+<li>viscous drag: air resistance that slows particles down.</li>
+<li>wind force: external force that blows particles away.</li>
+<li>spring force: binary spring force between two particles.</li>
+</ul>
+
+
+<h3>
+<a id="sec_particle" class="anchor" href="#sec_particle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Particle</h3>
+
+<p>The role of a particle varies in different scenes: it could be a flame in the exploded firework, or a vertex on the cloth mesh. The physical properties of a particle we may want to model include:</p>
+
+<ul>
+<li><code>mass</code> or $m$, a scalar indicating the mass of the particle.
+<li><code>pos</code> or $p$, a 3D vector indicating the position of the particle.</li>
+<li><code>vel</code> or $v$, a 3D vector indicating the velocity of the particle.</li>
+<li><code>acc</code> or $a$, a 3D vector indicating the acceleration of the particle.</li>
+<li><code>extForce</code>, a 3D vector indicating the external force exerted on the particle, e.g. wind or manual drag. It differs from internal forces which are always there in the system, such as gravity, viscous drag and spring force.</li>
+</ul>
+
+<h3>
+<a id="sec_forward_euler" class="anchor" href="#sec_forward_euler" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Forward Euler</h3>
+
+<p>The system will take care of <code>acc</code> of every particle.</p>
+
+<p>$$
+a^t = F^t / m
+$$</p>
+
+<p>Given <code>acc</code>, each particle will then integrate over a tiny time step $\tau$, and update its <code>pos</code> and <code>vel</code>.</p>
+
+<p>$$
+v^{t+1} = v^t + \tau a^t \\
+p^{t+1} = p^t + \tau v^{t+1}
+$$</p>
+
+<p>Forward Euler is very unstable, so we need to make $\tau$ small enough (<code>1e-1</code> in this project). If $\tau$ is chosen too large (tried <code>2e-1</code>), the system may easily get exploded. In short, it&#39;s an empirical tradeoff between efficiency and stability.</p>
+
+<h3>
+<a id="sec_viscous_drag" class="anchor" href="#sec_viscous_drag" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Viscous Drag</h3>
+
+<p>We don&#39;t live in the ideal vacuum; there&#39;s viscous drag in the air to prevent a pendulum swinging forever. Intuitively, particles with larger velocity will have more resistance, so the viscous drag can be model as following</p>
+
+<p>$$
+f_{v} = -k_d v
+$$</p>
+
+<p>where $k_d$ is <em>coefficent of drag</em>. Like $g$, it&#39;s a constant property of the entire system.</p>
+
+<h3>
+<a id="sec_spring_force" class="anchor" href="#sec_spring_force" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Spring Force</h3>
+
+<p>Spring force is described as <code>BiGroup</code> in this project. It models the binary constraint between two particles. For two particles located at $p_1$ and $p_2$ with velocity $v_1$ and $v_2$, the spring force can be modeled as following</p>
+
+<p>$$
+f_1 = -\Big[ k_s(|l|-r) + k_d \frac{\dot{l}\cdot l}{|l|} \Big] \frac{l}{|l|} \\
+f_2 = -f_1
+$$</p>
+
+<p>where</p>
+
+<ul>
+<li>$k_s$ is spring constant.</li>
+<li>$k_d$ is damping constant.</li>
+<li>$r$ is the reset distance between two particles.</li>
+<li>$l = p_1 - p_2$ is the vector pointing from $p_2$ to $p_1$.</li>
+<li>$\dot{l} = v_1 - v_2$ is the difference in velocity.</li>
+</ul>
+
+<p>These are properties per particle pair.</p>
+
+<h3>
+<a id="sec_particle_system" class="anchor" href="#sec_particle_system" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Particle System</h3>
+
+<p>The system keeps track of the following attributes:</p>
+
+<ul>
+<li><code>particles</code> is an array of particles in the system.</li>
+<li><code>gravity</code> is a 3D vector indicating the acceleration field of gravity. It can be any customized vector, as long as it&#39;s constant.</li>
+<li><code>kd</code> or $k_d$ is a constant scalar of <em>coefficent of drag</em>.</li>
+<li><code>biGroups</code> is an array of binary constraints.</li>
+</ul>
+
+<p>Within the integration of every timestep $\tau$, the system first sums up all forces for every particle, including gravity, viscous drag, binary force, external force like wind, and then hands down the computed acceleration <code>acc</code> to every particle. Finally, every particle does the forward Euler and updates their <code>pos</code> and <code>vel</code>, and a timestep is finished. See <a href="https://github.com/misaka-10032/particle-system/blob/master/js/particle-system.js">source code</a> for detail.</p>
+
+<h2>
+<a id="sec_examples" class="anchor" href="#sec_examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h2>
+
+<h3>
+<a id="sec_fireworks" class="anchor" href="#sec_fireworks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Fireworks</h3>
+
+<p>Only unary force of gravity is modeled in fireworks. Each particle is an exploded flame from a firework. Before explosion, hundreds of particles coincides as if there were only one particle. On explosion, every particle gains a random velocity. The velocity is uniformly sampled from a sphere, boosting on the $y$ axis a little bit to make it more real.</p>
+
+<p>Each particle is rendered as a sprite, blending a customized color with a given texture. <a href="http://stackoverflow.com/questions/20640364/three-js-how-to-fade-the-background">To simulate the trajectory</a>, the drawing buffer is preserved, and a transparent black plane is manually added at the back to clean up the remained buffer little by little. The default background is black, so it just looks like the sky in the night :-)</p>
+
+<p>Try click on the canvas to explode a firework!</p>
+
+<!-- TODO -->
+
+<h3>
+<a id="sec_cloth" class="anchor" href="#sec_cloth" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Cloth</h3>
+
+<p>The cloth takes both unary and binary forces into account. The cloth can be modeled as a double-sided plane in geometry. The vertices on the mesh can be modeled as particles in the system.</p>
+
+<p>The motion constraints can be simplified into a mass-spring model. Two types of connections are modeled in this model:</p>
+
+<ul>
+<li>Internal connection: each internal particle is connected to the eight particles around it.</li>
+<li>Edge connection: a particle at the edge connects to not only its neighbors, but also the one two hops away from it in the edge direction.</li>
+</ul>
+
+<p>Click on the screen to blow a wind of random strength in the pointed direction. Click replay to reset the scene.</p>
+
+<!-- TODO -->
+
+<h2>
+<a id="sec_reference" class="anchor" href="#sec_reference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reference</h2>
+
+<ul>
+<li><a href="http://creativejs.com/tutorials/creating-fireworks/">Fireworks in 2D</a></li>
+<li><a href="https://graphics.stanford.edu/%7Emdfisher/cloth.html">Matt&#39;s article on cloth</a></li>
+<li><a href="http://graphics.cs.cmu.edu/nsp/course/15-464/Fall09/assignments/asst3/15464%20Assignment%203.pdf">15-464 handout</a></li>
+<li><a href="https://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene">Three.js documentation</a></li>
+<li><a href="https://threejs.org/examples/#webgl_points_sprites">Three.js example of sprites</a></li>
+<li><a href="https://threejs.org/examples/#webgl_animation_cloth">Three.js example of cloth</a></li>
 </ul>
