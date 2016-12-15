@@ -42,7 +42,7 @@ define(['underscore', 'three', 'ps'],
     this.geoCloth = new THREE.ParametricGeometry(
       this.funCloth, this.nx, this.ny);
     this.geoCloth.dynamic = true;
-    this.texCloth = new THREE.TextureLoader().load(TEXTURE);
+    this.texCloth = new THREE.TextureLoader().load(this.texUrl);
     this.texCloth.warpS = this.texCloth.warpT = THREE.RepeatWrapping;
     this.texCloth.anisotropy = 16;
 
