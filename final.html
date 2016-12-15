@@ -125,7 +125,7 @@ $$</p>
 
 <p>Try click on the canvas to explode a firework!</p>
 
-<!-- TODO -->
+<div id="fireworks-demo" class="demo"></div>
 
 <h3>
 <a id="sec_cloth" class="anchor" href="#sec_cloth" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Cloth</h3>
@@ -141,7 +141,7 @@ $$</p>
 
 <p>Click on the screen to blow a wind of random strength in the pointed direction. Click replay to reset the scene.</p>
 
-<!-- TODO -->
+<div id="cloth-demo" class="demo"></div>
 
 <h2>
 <a id="sec_reference" class="anchor" href="#sec_reference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reference</h2>
@@ -154,3 +154,18 @@ $$</p>
 <li><a href="https://threejs.org/examples/#webgl_points_sprites">Three.js example of sprites</a></li>
 <li><a href="https://threejs.org/examples/#webgl_animation_cloth">Three.js example of cloth</a></li>
 </ul>
+
+<script>
+  require(["fireworks-demo"], function(demo) {
+    demo.init({
+      divId: "fireworks-demo",
+      texUrl: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/img/particle.png",
+    });
+  })
+  require(["cloth-demo"], function(demo) {
+    demo.init({
+      divId: "cloth-demo",
+      texUrl: "https://raw.githubusercontent.com/misaka-10032/particle-system/master/img/cloth1.jpg",
+    });
+  })
+</script>
